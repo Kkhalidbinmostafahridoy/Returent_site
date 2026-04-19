@@ -17,15 +17,15 @@ export default function AdminLayout() {
     <div className="min-h-screen bg-gray-950 text-cream-100 flex flex-col">
       <header className="border-b border-white/10 bg-crimson-900/80 backdrop-blur sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
-          <Link to="/admin/orders" className="font-display text-xl font-bold text-cream-100 flex items-center gap-2">
+          <Link to="/admin" className="font-display text-xl font-bold text-cream-100 flex items-center gap-2">
             <LayoutDashboard className="text-gold-400" size={22} />
             C&amp;C Admin
           </Link>
           <div className="flex items-center gap-4 text-xs">
-            <NavLink
-              to="/admin/orders"
-              className="sm:hidden text-gold-400 font-bold uppercase tracking-wider"
-            >
+            <NavLink to="/admin" className="sm:hidden text-gold-400 font-bold uppercase tracking-wider" end>
+              Home
+            </NavLink>
+            <NavLink to="/admin/orders" className="sm:hidden text-cream-200 font-bold uppercase tracking-wider">
               Orders
             </NavLink>
             <span className="text-cream-200/60 truncate max-w-[160px] hidden sm:inline" title={admin?.email}>
@@ -48,6 +48,9 @@ export default function AdminLayout() {
       <div className="flex flex-1 max-w-6xl mx-auto w-full">
         <aside className="hidden sm:block w-52 shrink-0 border-r border-white/10 py-8">
           <nav className="space-y-1">
+            <NavLink to="/admin" end className={navCls}>
+              <LayoutDashboard size={16} /> Dashboard
+            </NavLink>
             <NavLink to="/admin/orders" className={navCls}>
               <Package size={16} /> Orders
             </NavLink>

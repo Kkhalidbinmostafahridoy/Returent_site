@@ -33,7 +33,15 @@ export default function AdminOrders() {
 
   return (
     <div>
-      <h1 className="font-display text-3xl font-bold text-cream-100 mb-2">Customer orders</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
+        <h1 className="font-display text-3xl font-bold text-cream-100">Customer orders</h1>
+        <Link
+          to="/admin"
+          className="text-xs font-bold uppercase tracking-wider text-gold-400 hover:underline self-start"
+        >
+          ← Dashboard
+        </Link>
+      </div>
       <p className="text-sm text-cream-200/50 mb-8">View, edit, confirm or cancel delivery, export PDF.</p>
 
       {loading ? (

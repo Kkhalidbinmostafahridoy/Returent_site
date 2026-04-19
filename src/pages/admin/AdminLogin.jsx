@@ -11,7 +11,7 @@ export default function AdminLogin() {
   const { loginAdmin, admin } = useAdminAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const from = location.state?.from?.pathname || '/admin/orders'
+  const from = location.state?.from?.pathname || '/admin'
 
   React.useEffect(() => {
     if (!admin) return

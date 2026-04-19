@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react'
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { ThemeProvider } from './context/ThemeContext'
 import { AuthProvider } from './context/AuthContext'
@@ -27,6 +27,7 @@ const NotFound = lazy(() => import('./pages/NotFound'))
 
 const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'))
 const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'))
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'))
 const AdminOrderDetail = lazy(() => import('./pages/admin/AdminOrderDetail'))
 
@@ -70,7 +71,14 @@ export default function App() {
                       </Suspense>
                     }
                   >
-                    <Route index element={<Navigate to="/admin/orders" replace />} />
+                    <Route
+                      index
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <AdminDashboard />
+                        </Suspense>
+                      }
+                    />
                     <Route
                       path="orders"
                       element={

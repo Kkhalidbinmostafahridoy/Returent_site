@@ -63,6 +63,10 @@ export const adminAuthApi = {
   me: () => apiFetch('/api/admin/auth/me'),
 }
 
+export const adminStatsApi = {
+  get: () => apiFetch('/api/admin/stats'),
+}
+
 export const adminOrderApi = {
   list: () => apiFetch('/api/admin/orders'),
   get: (id) => apiFetch(`/api/admin/orders/${encodeURIComponent(id)}`),
@@ -86,4 +90,4 @@ export async function adminDownloadOrderPdf(orderId) {
   return res.blob()
 }
 
-export default { authApi, cartApi, checkoutApi, paymentApi, orderApi, adminAuthApi, adminOrderApi }
+export default { authApi, cartApi, checkoutApi, paymentApi, orderApi, adminAuthApi, adminStatsApi, adminOrderApi }

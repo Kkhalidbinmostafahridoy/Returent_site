@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, LogIn, UserPlus } from 'lucide-react'
+import { Eye, EyeOff, LogIn, Shield, UserPlus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 
@@ -69,12 +69,33 @@ export default function LoginPage() {
             </Link>
           </div>
 
+          <p className="text-[11px] text-center text-gray-500 dark:text-cream-200/45 mb-2">
+            Choose who you are — customers stay on this page; staff use Admin.
+          </p>
+          <div className="flex rounded-sm border-2 border-cream-200 dark:border-white/20 overflow-hidden mb-6 shadow-sm">
+            <span className="flex-1 flex items-center justify-center gap-2 py-3 px-2 text-xs font-bold uppercase tracking-wider bg-crimson-600 text-white">
+              <LogIn size={15} />
+              Customer login
+            </span>
+            <Link
+              to="/admin/login"
+              className="flex-1 flex items-center justify-center gap-2 py-3 px-2 text-xs font-bold uppercase tracking-wider bg-cream-50 dark:bg-crimson-900/40 text-gray-800 dark:text-cream-100 hover:bg-cream-200/60 dark:hover:bg-crimson-800/60 transition-colors border-l-2 border-cream-200 dark:border-white/15"
+            >
+              <Shield size={15} />
+              Admin login
+            </Link>
+          </div>
+
           {location.state?.from?.pathname === '/checkout' && (
             <div className="mb-4 text-sm bg-cream-100 dark:bg-dark-bg border border-gold-500/40 text-crimson-800 dark:text-cream-100 px-3 py-2">
               Sign in to continue checkout. Your cart will be merged after login.
             </div>
           )}
           <div className="w-12 h-0.5 bg-gold-500 mb-6" />
+
+          <p className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-cream-200/50 mb-4">
+            Customer account — email &amp; password
+          </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
@@ -99,7 +120,7 @@ export default function LoginPage() {
               {loading ? (
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
-                <><LogIn size={16} /> Sign In</>
+                <><LogIn size={16} /> Login</>
               )}
             </button>
           </form>

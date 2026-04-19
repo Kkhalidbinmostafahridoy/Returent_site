@@ -32,6 +32,7 @@ app.use('/api/checkout', checkoutRoutes)
 app.use('/api/payment', paymentRoutes)
 app.use('/api/orders', orderRoutes)
 app.use('/api/admin/auth', adminAuthRoutes)
+app.use('/api/admin/stats', require('./routes/adminStats'))
 app.use('/api/admin/orders', adminOrdersRoutes)
 
 // Static preview build (optional)
@@ -40,8 +41,16 @@ app.use(express.static(dist))
 
 async function start() {
   await ensureAdminSeed()
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log(`API listening on http://localhost:${PORT} (CORS: ${clientOrigin})`)
+  })
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`\n[api] Port ${PORT} is already in use (stop the other API or set PORT=3002 and match vite proxy).`)
+    } else {
+      console.error('[api] Server error:', err)
+    }
+    process.exit(1)
   })
 }
 
