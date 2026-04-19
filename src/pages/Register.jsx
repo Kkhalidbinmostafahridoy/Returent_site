@@ -1,28 +1,62 @@
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { UserPlus } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { LogIn, UserPlus } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { authApi } from '../services/api'
 
 export default function RegisterPage() {
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' })
   const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (form.password !== form.confirm) {
-      toast.error('Passwords do not match'); return
+      toast.error('Passwords do not match')
+      return
+    }
+    if (form.password.length < 8) {
+      toast.error('Password must be at least 8 characters')
+      return
     }
     setLoading(true)
-    await new Promise(r => setTimeout(r, 1000))
-    const mockToken = btoa('{}') + '.' +
-      btoa(JSON.stringify({ name: form.name, email: form.email, exp: Math.floor(Date.now() / 1000) + 86400 })) + '.sig'
-    login({ name: form.name, email: form.email }, mockToken)
-    toast.success(`Welcome, ${form.name}!`, { icon: '🎉', style: { background: '#FFF5E1', color: '#8B0000', border: '1px solid #B8860B' } })
-    navigate('/')
-    setLoading(false)
+    try {
+      const res = await authApi.register({
+        name: form.name.trim(),
+        email: form.email.trim(),
+        password: form.password,
+      })
+      toast.success(res.message || 'Check your email for the code', { icon: '✉️', duration: 5000 })
+      if (res.mailPreviewUrl) {
+        toast.success(
+          <span>
+            Dev inbox:{' '}
+            <a href={res.mailPreviewUrl} target="_blank" rel="noreferrer" className="underline font-bold">
+              open captured email
+            </a>{' '}
+            (Ethereal — not your real mailbox).
+          </span>,
+          { duration: 20000 }
+        )
+      }
+      if (res.devOtp) {
+        toast(`Your verification code (dev): ${res.devOtp}`, { duration: 20000 })
+      }
+      navigate('/verify-email', {
+        replace: true,
+        state: {
+          email: form.email.trim(),
+          mailPreviewUrl: res.mailPreviewUrl,
+          devOtp: res.devOtp,
+          emailMode: res.emailMode,
+        },
+      })
+    } catch (err) {
+      toast.error(err.message || 'Registration failed')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const inputCls = `w-full border-2 border-cream-200 dark:border-white/20 bg-white dark:bg-dark-bg px-4 py-3 text-sm
@@ -40,7 +74,31 @@ export default function RegisterPage() {
 
         <div className="bg-white dark:bg-crimson-800/30 border border-cream-200 dark:border-white/10 p-8 shadow-2xl">
           <h2 className="font-display text-3xl font-bold text-gray-900 dark:text-cream-100 mb-1">Create Account</h2>
-          <p className="font-bangla text-crimson-500 dark:text-gold-400 text-sm mb-6">নতুন অ্যাকাউন্ট</p>
+          <p className="font-bangla text-crimson-500 dark:text-gold-400 text-sm mb-4">নতুন অ্যাকাউন্ট</p>
+
+          <div className="flex gap-3 justify-center mb-6" role="tablist" aria-label="Choose sign in or register">
+            <Link
+              to="/login"
+              state={location.state}
+              className="flex flex-1 max-w-[9.5rem] flex-col items-center justify-center gap-1.5 px-3 py-3 border-2 border-cream-200 dark:border-white/25 bg-cream-50 dark:bg-dark-bg text-gray-800 dark:text-cream-100 rounded-sm hover:border-crimson-500 dark:hover:border-gold-500 hover:text-crimson-700 dark:hover:text-gold-400 transition-all"
+            >
+              <LogIn size={22} strokeWidth={2.25} />
+              <span className="text-[10px] font-bold uppercase tracking-widest">Sign in</span>
+            </Link>
+            <Link
+              to="/register"
+              state={location.state}
+              aria-current="page"
+              className="flex flex-1 max-w-[9.5rem] flex-col items-center justify-center gap-1.5 px-3 py-3 border-2 border-crimson-600 bg-crimson-600 text-white rounded-sm shadow-md transition-transform hover:scale-[1.02]"
+            >
+              <UserPlus size={22} strokeWidth={2.25} />
+              <span className="text-[10px] font-bold uppercase tracking-widest">Register</span>
+            </Link>
+          </div>
+
+          <p className="text-xs text-gray-600 dark:text-cream-200/60 mb-4">
+            After submitting, we email you a 6-digit code. You must verify before you can sign in.
+          </p>
           <div className="w-12 h-0.5 bg-gold-500 mb-6" />
 
           <form onSubmit={handleSubmit} className="space-y-5">

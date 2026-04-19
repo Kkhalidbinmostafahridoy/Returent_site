@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, LogIn } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Eye, EyeOff, LogIn, UserPlus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 
@@ -8,20 +8,28 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [show, setShow] = useState(false)
   const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
+  const { loginUser } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const from = location.state?.from?.pathname || '/'
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-    await new Promise(r => setTimeout(r, 1000))
-    // Mock JWT login - replace with real API call
-    const mockToken = btoa(JSON.stringify({ header: 'jwt' })) + '.' +
-      btoa(JSON.stringify({ name: 'Guest User', email: form.email, exp: Math.floor(Date.now() / 1000) + 86400 })) + '.signature'
-    login({ name: 'Guest User', email: form.email }, mockToken)
-    toast.success('Welcome back!', { icon: '👋', style: { background: '#FFF5E1', color: '#8B0000', border: '1px solid #B8860B' } })
-    navigate('/')
-    setLoading(false)
+    try {
+      await loginUser(form.email, form.password)
+      toast.success('Welcome back!', { icon: '👋', style: { background: '#FFF5E1', color: '#8B0000', border: '1px solid #B8860B' } })
+      navigate(from, { replace: true })
+    } catch (err) {
+      if (err.code === 'EMAIL_NOT_VERIFIED') {
+        toast.error('Please verify your email before signing in.')
+        navigate('/verify-email', { state: { email: form.email.trim() } })
+      } else {
+        toast.error(err.message || 'Sign in failed')
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
   const inputCls = `w-full border-2 border-cream-200 dark:border-white/20 bg-white dark:bg-dark-bg px-4 py-3 text-sm
@@ -39,7 +47,33 @@ export default function LoginPage() {
 
         <div className="bg-white dark:bg-crimson-800/30 border border-cream-200 dark:border-white/10 p-8 shadow-2xl">
           <h2 className="font-display text-3xl font-bold text-gray-900 dark:text-cream-100 mb-1">Sign In</h2>
-          <p className="font-bangla text-crimson-500 dark:text-gold-400 text-sm mb-6">লগইন করুন</p>
+          <p className="font-bangla text-crimson-500 dark:text-gold-400 text-sm mb-4">লগইন করুন</p>
+
+          <div className="flex gap-3 justify-center mb-6" role="tablist" aria-label="Choose sign in or register">
+            <Link
+              to="/login"
+              state={location.state}
+              aria-current="page"
+              className="flex flex-1 max-w-[9.5rem] flex-col items-center justify-center gap-1.5 px-3 py-3 border-2 border-crimson-600 bg-crimson-600 text-white rounded-sm shadow-md transition-transform hover:scale-[1.02]"
+            >
+              <LogIn size={22} strokeWidth={2.25} />
+              <span className="text-[10px] font-bold uppercase tracking-widest">Sign in</span>
+            </Link>
+            <Link
+              to="/register"
+              state={location.state}
+              className="flex flex-1 max-w-[9.5rem] flex-col items-center justify-center gap-1.5 px-3 py-3 border-2 border-cream-200 dark:border-white/25 bg-cream-50 dark:bg-dark-bg text-gray-800 dark:text-cream-100 rounded-sm hover:border-crimson-500 dark:hover:border-gold-500 hover:text-crimson-700 dark:hover:text-gold-400 transition-all"
+            >
+              <UserPlus size={22} strokeWidth={2.25} />
+              <span className="text-[10px] font-bold uppercase tracking-widest">Register</span>
+            </Link>
+          </div>
+
+          {location.state?.from?.pathname === '/checkout' && (
+            <div className="mb-4 text-sm bg-cream-100 dark:bg-dark-bg border border-gold-500/40 text-crimson-800 dark:text-cream-100 px-3 py-2">
+              Sign in to continue checkout. Your cart will be merged after login.
+            </div>
+          )}
           <div className="w-12 h-0.5 bg-gold-500 mb-6" />
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -71,7 +105,7 @@ export default function LoginPage() {
           </form>
 
           <p className="text-center text-sm text-gray-500 dark:text-cream-200/50 mt-6">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link to="/register" className="text-crimson-600 dark:text-gold-400 font-bold hover:underline">Register</Link>
           </p>
 

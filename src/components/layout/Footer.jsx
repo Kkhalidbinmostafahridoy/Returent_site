@@ -176,6 +176,9 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="mt-14 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-cream-200/50">
           <span>© 2025 Cream & Crust (C&C). All rights reserved.</span>
+          <Link to="/admin/login" className="text-cream-200/40 hover:text-gold-400 transition-colors">
+            Staff login
+          </Link>
           {/* <span className="font-bangla">
             ক্রিম অ্যান্ড ক্রাস্ট — বাংলার স্বাদ
           </span> */}

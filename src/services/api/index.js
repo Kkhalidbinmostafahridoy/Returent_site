@@ -1,55 +1,89 @@
-// API service layer — ready for real backend integration
-// Replace BASE_URL with your actual API endpoint
+const BASE = import.meta.env.VITE_API_URL ?? ''
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://api.creamandcrust.com/v1'
-
-const getAuthHeader = () => {
-  const token = localStorage.getItem('cc-token')
-  return token ? { Authorization: `Bearer ${token}` } : {}
-}
-
-const request = async (endpoint, options = {}) => {
-  const res = await fetch(`${BASE_URL}${endpoint}`, {
+async function apiFetch(path, options = {}) {
+  const res = await fetch(`${BASE}${path}`, {
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      ...getAuthHeader(),
       ...options.headers,
     },
     ...options,
   })
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: 'Network error' }))
-    throw new Error(error.message || 'Request failed')
+  const text = await res.text()
+  let data = null
+  try {
+    data = text ? JSON.parse(text) : null
+  } catch {
+    data = { message: text || 'Invalid response' }
   }
-  return res.json()
+  if (!res.ok) {
+    const err = new Error(data?.message || 'Request failed')
+    err.status = res.status
+    err.code = data?.code
+    err.errors = data?.errors
+    throw err
+  }
+  return data
 }
 
-// Auth endpoints
 export const authApi = {
-  login: (credentials) => request('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
-  register: (userData) => request('/auth/register', { method: 'POST', body: JSON.stringify(userData) }),
-  logout: () => request('/auth/logout', { method: 'POST' }),
-  me: () => request('/auth/me'),
+  register: (body) => apiFetch('/api/auth/register', { method: 'POST', body: JSON.stringify(body) }),
+  verifyOtp: (body) => apiFetch('/api/auth/verify-otp', { method: 'POST', body: JSON.stringify(body) }),
+  resendOtp: (email) => apiFetch('/api/auth/resend-otp', { method: 'POST', body: JSON.stringify({ email }) }),
+  login: (body) => apiFetch('/api/auth/login', { method: 'POST', body: JSON.stringify(body) }),
+  logout: () => apiFetch('/api/auth/logout', { method: 'POST' }),
+  me: () => apiFetch('/api/auth/me'),
 }
 
-// Menu endpoints
-export const menuApi = {
-  getAll: () => request('/menu'),
-  getById: (id) => request(`/menu/${id}`),
-  getByCategory: (category) => request(`/menu?category=${category}`),
-  search: (query) => request(`/menu/search?q=${encodeURIComponent(query)}`),
+export const cartApi = {
+  get: () => apiFetch('/api/cart'),
+  put: (items) => apiFetch('/api/cart', { method: 'PUT', body: JSON.stringify({ items }) }),
+  merge: (guestItems) =>
+    apiFetch('/api/cart/merge', { method: 'POST', body: JSON.stringify({ guestItems }) }),
 }
 
-// Order endpoints
+export const checkoutApi = {
+  create: (payload) => apiFetch('/api/checkout', { method: 'POST', body: JSON.stringify(payload) }),
+  get: (checkoutId) => apiFetch(`/api/checkout/${encodeURIComponent(checkoutId)}`),
+}
+
+export const paymentApi = {
+  create: (body) => apiFetch('/api/payment/create', { method: 'POST', body: JSON.stringify(body) }),
+  confirm: (body) => apiFetch('/api/payment/confirm', { method: 'POST', body: JSON.stringify(body) }),
+}
+
 export const orderApi = {
-  create: (orderData) => request('/orders', { method: 'POST', body: JSON.stringify(orderData) }),
-  getMyOrders: () => request('/orders/me'),
-  getById: (id) => request(`/orders/${id}`),
+  getMine: () => apiFetch('/api/orders/me'),
+  getById: (id) => apiFetch(`/api/orders/${encodeURIComponent(id)}`),
 }
 
-// Contact endpoint
-export const contactApi = {
-  send: (formData) => request('/contact', { method: 'POST', body: JSON.stringify(formData) }),
+export const adminAuthApi = {
+  login: (body) => apiFetch('/api/admin/auth/login', { method: 'POST', body: JSON.stringify(body) }),
+  logout: () => apiFetch('/api/admin/auth/logout', { method: 'POST' }),
+  me: () => apiFetch('/api/admin/auth/me'),
 }
 
-export default { authApi, menuApi, orderApi, contactApi }
+export const adminOrderApi = {
+  list: () => apiFetch('/api/admin/orders'),
+  get: (id) => apiFetch(`/api/admin/orders/${encodeURIComponent(id)}`),
+  update: (id, body) =>
+    apiFetch(`/api/admin/orders/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  delivery: (id, payload) =>
+    apiFetch(`/api/admin/orders/${encodeURIComponent(id)}/delivery`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+}
+
+export async function adminDownloadOrderPdf(orderId) {
+  const res = await fetch(`${BASE}/api/admin/orders/${encodeURIComponent(orderId)}/pdf`, {
+    credentials: 'include',
+  })
+  if (!res.ok) {
+    const t = await res.text()
+    throw new Error(t || 'PDF download failed')
+  }
+  return res.blob()
+}
+
+export default { authApi, cartApi, checkoutApi, paymentApi, orderApi, adminAuthApi, adminOrderApi }

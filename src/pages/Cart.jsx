@@ -1,11 +1,14 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Plus, Minus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 
 export default function CartPage() {
   const { items, updateQty, removeItem, clearCart, total } = useCart()
+  const { user } = useAuth()
+  const navigate = useNavigate()
 
   const handleRemove = (item) => {
     removeItem(item.id)
@@ -20,6 +23,15 @@ export default function CartPage() {
     })
   }
 
+  const goCheckout = () => {
+    if (!user) {
+      toast.error('Please sign in or register to checkout', { icon: '🔐' })
+      navigate('/login', { state: { from: { pathname: '/checkout' } } })
+      return
+    }
+    navigate('/checkout')
+  }
+
   if (items.length === 0) {
     return (
       <main className="min-h-screen bg-cream-50 dark:bg-dark-bg pt-20 flex items-center justify-center">
@@ -28,9 +40,6 @@ export default function CartPage() {
           <h2 className="font-display text-4xl text-crimson-600 dark:text-gold-400 font-bold">
             Your cart is empty
           </h2>
-          <p className="font-bangla text-gray-500 dark:text-cream-200/50 mt-2 text-lg">
-            {/* আপনার কার্টটি খালি */}
-          </p>
           <p className="text-gray-400 mt-3 mb-8">
             Add some delicious Bengali dishes to get started
           </p>
@@ -171,25 +180,22 @@ export default function CartPage() {
               </div>
 
               <button
-                onClick={() =>
-                  toast('Please log in to place an order', {
-                    icon: '🔐',
-                    style: {
-                      background: '#FFF5E1',
-                      color: '#8B0000',
-                      border: '1px solid #B8860B',
-                      fontFamily: 'Lato, sans-serif',
-                    },
-                  })
-                }
+                type="button"
+                onClick={goCheckout}
                 className="w-full btn-primary flex items-center justify-center gap-2 mt-6"
               >
                 Proceed to Checkout <ArrowRight size={16} />
               </button>
 
-              <p className="text-center text-xs text-gray-400 dark:text-cream-200/40 mt-3">
-                Login required to complete order
-              </p>
+              {!user ? (
+                <p className="text-center text-xs text-amber-800 dark:text-amber-200/90 mt-3 font-bold">
+                  Sign in required for checkout and payment
+                </p>
+              ) : (
+                <p className="text-center text-xs text-gray-400 dark:text-cream-200/40 mt-3">
+                  Signed in as {user.email}
+                </p>
+              )}
 
               <Link
                 to="/menu"
@@ -198,13 +204,12 @@ export default function CartPage() {
                 ← Continue Shopping
               </Link>
 
-              {/* Guest badge */}
               <div className="mt-4 bg-cream-100 dark:bg-dark-bg border border-gold-500/30 p-3 text-center">
                 <span className="text-xs text-gold-600 dark:text-gold-400 font-bold">
-                  🛒 Guest Cart
+                  {user ? '✓ Account cart sync' : '🛒 Guest cart'}
                 </span>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  Items saved in browser
+                  {user ? 'Saved to your account (and this browser)' : 'Items saved in this browser'}
                 </p>
               </div>
             </div>

@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { ShoppingCart, Menu, X, Sun, Moon, ChevronDown } from 'lucide-react'
+import { ShoppingCart, Menu, X, Sun, Moon, LogOut, Package } from 'lucide-react'
 import { useCart } from '../../context/CartContext'
 import { useTheme } from '../../context/ThemeContext'
+import { useAuth } from '../../context/AuthContext'
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const { count } = useCart()
+  const { user, logout, initializing } = useAuth()
   const { isDark, toggle } = useTheme()
   const location = useLocation()
   const isHome = location.pathname === '/'
@@ -28,12 +30,19 @@ export default function Navbar() {
       : 'bg-cream-100/95 dark:bg-dark-surface/95 backdrop-blur-md shadow-lg'
 
   const links = [
-    { to: '/', label: 'Home' },
-    { to: '/menu', label: 'Menu' },
-    { to: '/about', label: 'About' },
-    { to: '/location', label: 'Location' },
-    { to: '/contact', label: 'Contact' },
+    { to: '/', label: 'Home', bangla: 'হোম' },
+    { to: '/menu', label: 'Menu', bangla: 'মেনু' },
+    { to: '/about', label: 'About', bangla: 'আমাদের সম্পর্কে' },
+    { to: '/location', label: 'Location', bangla: 'অবস্থান' },
+    { to: '/contact', label: 'Contact', bangla: 'যোগাযোগ' },
   ]
+
+  const authLinkCls = (extra = '') =>
+    `text-xs font-bold tracking-widest uppercase px-3 py-2 border-2 transition-colors ${extra} ${
+      isHome && !scrolled
+        ? 'border-cream-100/40 text-cream-100 hover:bg-white/10'
+        : 'border-crimson-600 text-crimson-600 dark:border-gold-500 dark:text-gold-400 hover:bg-crimson-600 hover:text-white dark:hover:bg-gold-500 dark:hover:text-dark-bg'
+    }`
 
   return (
     <nav
@@ -106,6 +115,45 @@ export default function Navbar() {
               )}
             </Link>
 
+            {!initializing && (
+              <div className="hidden md:flex items-center gap-2 pl-2 border-l border-white/20 dark:border-white/10">
+                {user ? (
+                  <>
+                    <NavLink
+                      to="/orders"
+                      className={({ isActive }) =>
+                        `flex items-center gap-1 px-2 py-1 text-xs font-bold uppercase tracking-wider ${
+                          isActive ? 'text-gold-400' : ''
+                        } ${isHome && !scrolled ? 'text-cream-100 hover:text-gold-300' : 'text-gray-700 dark:text-cream-200'}`
+                      }
+                    >
+                      <Package size={14} /> Orders
+                    </NavLink>
+                    <span
+                      className={`max-w-[120px] truncate text-xs ${isHome && !scrolled ? 'text-cream-200' : 'text-gray-500 dark:text-cream-200/60'}`}
+                      title={user.email}
+                    >
+                      {user.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => logout()}
+                      className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider ${
+                        isHome && !scrolled ? 'text-cream-100 hover:text-gold-300' : 'text-gray-600 dark:text-cream-200 hover:text-crimson-600'
+                      }`}
+                    >
+                      <LogOut size={14} /> Out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/login" className={authLinkCls()}>Sign in</Link>
+                    <Link to="/register" className={authLinkCls('hidden lg:inline-flex')}>Register</Link>
+                  </>
+                )}
+              </div>
+            )}
+
             {/* Mobile menu toggle */}
             <button
               className={`md:hidden p-2 rounded-full transition-all ${
@@ -144,6 +192,25 @@ export default function Navbar() {
               <span className="font-bangla text-sm opacity-70">{l.bangla}</span>
             </NavLink>
           ))}
+          <div className="pt-3 mt-1 border-t border-cream-200 dark:border-white/10 space-y-2">
+            {!initializing && (
+              user ? (
+                <>
+                  <NavLink to="/orders" className="block py-2 px-2 font-bold text-sm text-crimson-600 dark:text-gold-400">
+                    My orders
+                  </NavLink>
+                  <button type="button" onClick={() => logout()} className="block w-full text-left py-2 px-2 text-sm font-bold text-gray-600 dark:text-cream-200">
+                    Sign out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login" className="block py-2 px-2 font-bold text-sm text-crimson-600 dark:text-gold-400">Sign in</Link>
+                  <Link to="/register" className="block py-2 px-2 text-sm font-bold text-gray-600 dark:text-cream-200">Register</Link>
+                </>
+              )
+            )}
+          </div>
         </div>
       </div>
     </nav>

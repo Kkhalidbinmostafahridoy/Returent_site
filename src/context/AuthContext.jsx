@@ -1,33 +1,50 @@
-import React, { createContext, useContext, useState } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { authApi } from '../services/api'
 
 const AuthContext = createContext()
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
+  const [user, setUser] = useState(null)
+  const [initializing, setInitializing] = useState(true)
+
+  const refreshUser = useCallback(async () => {
     try {
-      const token = localStorage.getItem('cc-token')
-      if (!token) return null
-      const payload = JSON.parse(atob(token.split('.')[1]))
-      if (payload.exp * 1000 < Date.now()) { localStorage.removeItem('cc-token'); return null }
-      return payload
-    } catch { return null }
-  })
+      const data = await authApi.me()
+      setUser(data.user)
+    } catch {
+      setUser(null)
+    }
+  }, [])
 
-  const login = (userData, token) => {
-    localStorage.setItem('cc-token', token)
-    setUser(userData)
+  useEffect(() => {
+    refreshUser().finally(() => setInitializing(false))
+  }, [refreshUser])
+
+  const loginUser = useCallback(async (email, password) => {
+    const data = await authApi.login({ email, password })
+    setUser(data.user)
+    return data
+  }, [])
+
+  const logout = useCallback(async () => {
+    try {
+      await authApi.logout()
+    } finally {
+      setUser(null)
+    }
+  }, [])
+
+  const value = {
+    user,
+    initializing,
+    isAuthenticated: Boolean(user),
+    isGuest: !user,
+    loginUser,
+    logout,
+    refreshUser,
   }
 
-  const logout = () => {
-    localStorage.removeItem('cc-token')
-    setUser(null)
-  }
-
-  return (
-    <AuthContext.Provider value={{ user, login, logout, isGuest: !user }}>
-      {children}
-    </AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export const useAuth = () => useContext(AuthContext)

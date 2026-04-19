@@ -1,0 +1,28 @@
+/** Server-side catalog for price validation (keep in sync with src/data/menuData.js) */
+module.exports = {
+  deliveryFee: 50,
+  items: new Map([
+    [1, { name: 'Kacchi Biryani', price: 380 }],
+    [2, { name: 'Ilish Bhuna', price: 450 }],
+    [3, { name: 'Chingri Malaikari', price: 520 }],
+    [4, { name: 'Beef Rezala', price: 350 }],
+    [5, { name: 'Morog Polao', price: 290 }],
+    [6, { name: 'Shorshe Ilish', price: 480 }],
+    [7, { name: 'Dal Puri', price: 60 }],
+    [8, { name: 'Bhuna Khichuri', price: 150 }],
+    [9, { name: 'Beef Tehari', price: 220 }],
+    [10, { name: 'Panta Bhat Platter', price: 180 }],
+    [11, { name: 'Chicken Shingara', price: 40 }],
+    [12, { name: 'Fuchka Platter', price: 120 }],
+    [13, { name: 'Mughlai Paratha', price: 140 }],
+    [14, { name: 'Alur Chop', price: 50 }],
+    [15, { name: 'Mishti Doi', price: 80 }],
+    [16, { name: 'Roshmalai', price: 120 }],
+    [17, { name: 'Sondesh', price: 90 }],
+    [18, { name: 'Payesh', price: 100 }],
+    [19, { name: 'Borhani', price: 60 }],
+    [20, { name: 'Lassi (Special)', price: 80 }],
+    [21, { name: 'Aam Pora Shorbot', price: 70 }],
+    [22, { name: 'Shahi Chai', price: 50 }],
+  ]),
+}
